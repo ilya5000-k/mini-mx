@@ -1,0 +1,53 @@
+version: '3.7'
+
+services:
+  docker-scanservjs:
+    restart: unless-stopped
+    container_name: scanservjs
+    image: "sbs20/scanservjs:latest"
+    devices:
+      - /dev/bus/usb/001/003:/dev/bus/usb/001/003
+    volumes:
+      - ./scans:/app/data/output
+    ports:
+      - "8383:8080"
+    mem_limit: 23m
+
+  webdav:
+    container_name: webdav
+    image: ugeek/webdav:arm64     ### ex. arm image
+    ports:
+      - 80:80
+    volumes:
+      - ./scans:/media
+    environment:
+      - USERNAME=ilya
+      - PASSWORD=aZ155322
+      - UID=1000
+      - GID=1000
+      - TZ=Asia/Yekaterinburg
+    depends_on:
+      - docker-scanservjs
+#    mem_limit: 23m
+#    networks:
+#      - web
+    labels:
+      - traefik.backend=webdav...............................................................................................
+      - traefik.frontend.rule=Host:webdav.your_domain.duckdns.org
+      - traefik.docker.network=web
+      - traefik.port=80
+      - traefik.enable=true
+      # Adding in secure headers
+      - traefik.http.middlewares.securedheaders.headers.forcestsheader=true
+      - traefik.http.middlewares.securedheaders.headers.sslRedirect=true
+      - traefik.http.middlewares.securedheaders.headers.STSPreload=true
+      - traefik.http.middlewares.securedheaders.headers.ContentTypeNosniff=true
+      - traefik.http.middlewares.securedheaders.headers.BrowserXssFilter=true
+      - traefik.http.middlewares.securedheaders.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.securedheaders.headers.stsSeconds=63072000
+      - traefik.http.middlewares.securedheaders.headers.frameDeny=true
+      - traefik.http.middlewares.securedheaders.headers.browserXssFilter=true
+      - traefik.http.middlewares.securedheaders.headers.contentTypeNosniff=true
+#networks:...................................................................................................................
+#  web:
+#   external: true.
